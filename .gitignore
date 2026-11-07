@@ -1,0 +1,48 @@
+# Entorno virtual
+.venv/
+venv/
+env/
+ENV/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Claves y configuración local (NUNCA subir .env con datos reales)
+.env
+.env.local
+.env.*.local
+
+# Base vectorial del RAG (se regenera al indexar)
+chroma_db/
+*.sqlite3
+*.db
+
+# Datos: todo lo que dejes en data/ queda fuera del repo por confidencialidad.
+# Solo se publican los ejemplos que empiezan por "ejemplo_".
+data/*
+!data/ejemplo_*
+
+# Pruebas y cobertura
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# Editores y SO
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Registros y temporales
+*.log
+*.tmp
+.ipynb_checkpoints/

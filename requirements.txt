@@ -1,0 +1,14 @@
+crewai
+crewai-tools
+langchain-community
+langchain-ollama
+langchain-chroma
+chromadb
+pdfplumber
+openpyxl
+pandas
+tabulate
+pydantic
+streamlit
+python-dotenv
+pytest
