@@ -64,19 +64,27 @@ ROE, ROA, EBITDA y cobertura de intereses.
 
 ## Arquitectura
 
-```text
-Documento ──> loaders (pdfplumber / pandas) ──> texto + tablas
-                     │                              │
-                     │                        Chroma (RAG, nomic-embed-text)
-                     ▼                              │
-      extractor (LLM -> JSON Pydantic)              │
-                     ▼                              │
-   tú revisas y corriges las cifras en la tabla     │
-                     ▼                              ▼
-        ratios.py (Python puro) + alertas ──> CrewAI: Analista (usa RAG)
-                                                        │
-                                                        ▼
-                                                Redactor -> informe .md
+```mermaid
+flowchart TD
+    A[Documento PDF / XLSX / CSV] --> B[loaders.py<br/>pdfplumber / pandas]
+    B --> C[Texto + tablas]
+    C --> D[(ChromaDB<br/>nomic-embed-text)]
+    C --> E[extractor.py<br/>LLM a JSON Pydantic]
+    E --> F[Revisión humana<br/>tabla editable]
+    F --> G[ratios.py<br/>Python puro + alertas]
+    G --> H[Gráficos Altair<br/>y descarga CSV]
+    G --> I[CrewAI: Analista]
+    D --> I
+    I --> J[CrewAI: Redactor]
+    J --> K[Informe .md]
+    Q[Pregunta del usuario] --> R[rag.py responder]
+    D --> R
+    G --> R
+    R --> S[Respuesta con fuentes]
+    O{{Ollama<br/>qwen2.5:7b}} -.-> E
+    O -.-> I
+    O -.-> J
+    O -.-> R
 ```
 
 ## Requisitos
@@ -109,6 +117,42 @@ streamlit run app.py
 ```
 
 La app abre en `http://localhost:8501`.
+
+## Ejecutar con Docker
+
+Opción para quien no quiera instalar Python ni Ollama: Docker levanta **Ollama + la app** y descarga los modelos automáticamente la primera vez.
+
+**Requisitos:** [Docker Desktop](https://www.docker.com/products/docker-desktop/) (Windows/macOS) o Docker Engine + Compose (Linux). En Docker Desktop asigna **al menos 10-12 GB de RAM** (Settings → Resources).
+
+```bash
+git clone https://github.com/darwinjcn/analista-financiero-local.git
+cd analista-financiero-local
+docker compose up -d --build
+```
+
+La primera vez descarga ~5 GB de modelos (`ollama-init`); puedes seguir el progreso con:
+
+```bash
+docker compose logs -f ollama-init
+```
+
+Cuando termine, abre **http://localhost:8501**.
+
+| Comando | Para qué |
+| --- | --- |
+| `docker compose logs -f app` | Ver lo que hacen los agentes |
+| `docker compose down` | Detener (los modelos se conservan) |
+| `docker compose down -v` | Detener y borrar modelos e índice RAG |
+| `LLM_MODEL=qwen2.5:3b docker compose up -d` | Usar un modelo más liviano (equipos de 8 GB) |
+
+**¿Ya tienes Ollama instalado en tu equipo?** Puedes construir solo la app y apuntarla a tu Ollama local:
+
+```bash
+docker build -t analista-financiero .
+docker run -p 8501:8501 -e OLLAMA_BASE_URL=http://host.docker.internal:11434 analista-financiero
+```
+
+> En Linux añade `--add-host=host.docker.internal:host-gateway` al `docker run`.
 
 ## Uso
 
@@ -188,6 +232,9 @@ analista-financiero-local/
 │   └── test_app_rag.py    # Flujo de pregunta y fuentes en Streamlit (IA simulada)
 ├── docs/
 │   └── screenshots/       # Capturas que se ven en este README
+├── Dockerfile
+├── docker-compose.yml
+├── .dockerignore
 ├── LICENSE                # Licencia MIT
 └── pytest.ini             # Indica a pytest dónde buscar los módulos
 ```

@@ -1,0 +1,50 @@
+services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    volumes:
+      - ollama_data:/root/.ollama
+    ports:
+      - "11434:11434"
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  # Descarga los modelos una sola vez y termina
+  ollama-init:
+    image: ollama/ollama:latest
+    depends_on:
+      ollama:
+        condition: service_healthy
+    environment:
+      - OLLAMA_HOST=http://ollama:11434
+    entrypoint: ["/bin/sh", "-c"]
+    command: >
+      "ollama pull ${LLM_MODEL:-qwen2.5:7b} &&
+       ollama pull ${EMBED_MODEL:-nomic-embed-text}"
+    restart: "no"
+
+  app:
+    build: .
+    container_name: analista-financiero
+    depends_on:
+      ollama-init:
+        condition: service_completed_successfully
+    environment:
+      - OLLAMA_BASE_URL=http://ollama:11434
+      - LLM_MODEL=${LLM_MODEL:-qwen2.5:7b}
+      - EMBED_MODEL=${EMBED_MODEL:-nomic-embed-text}
+      - NUM_CTX=${NUM_CTX:-8192}
+      - CHROMA_DIR=/app/chroma_db
+    volumes:
+      - chroma_data:/app/chroma_db
+    ports:
+      - "8501:8501"
+    restart: unless-stopped
+
+volumes:
+  ollama_data:
+  chroma_data:
