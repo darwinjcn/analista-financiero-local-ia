@@ -3,12 +3,10 @@ from typing import Optional
 import pandas as pd
 from .schemas import EstadosFinancieros
 
-
 def _div(a: Optional[float], b: Optional[float]) -> Optional[float]:
     if a is None or b in (None, 0):
         return None
     return round(a / b, 4)
-
 
 def calcular_ratios(e: EstadosFinancieros) -> dict:
     ebitda = None
@@ -34,11 +32,43 @@ def calcular_ratios(e: EstadosFinancieros) -> dict:
         "cobertura_intereses": _div(e.utilidad_operativa, e.gastos_financieros),
     }
 
-
 def tabla_ratios(estados: list[EstadosFinancieros]) -> pd.DataFrame:
     df = pd.DataFrame([calcular_ratios(e) for e in estados])
     return df.sort_values("periodo").reset_index(drop=True)
 
+def agregar_contexto_ratios(df: pd.DataFrame) -> pd.DataFrame:
+    """Agrega columnas de rango esperado y estado a los ratios principales."""
+    df_out = df.copy()
+    
+    reglas = {
+        "liquidez_corriente": {
+            "rango": "1.5 - 2.0",
+            "eval": lambda x: "✅ Óptimo" if x is not None and 1.5 <= x <= 2.0 else ("⚠️ Bajo" if x is not None and x < 1.5 else ("🔺 Alto" if x is not None else "➖ N/A"))
+        },
+        "prueba_acida": {
+            "rango": "> 1.0",
+            "eval": lambda x: "✅ Óptimo" if x is not None and x >= 1.0 else ("⚠️ Bajo" if x is not None else "➖ N/A")
+        },
+        "endeudamiento": {
+            "rango": "< 60%",
+            "eval": lambda x: "✅ Saludable" if x is not None and x <= 0.60 else ("⚠️ Alto" if x is not None and x > 0.70 else ("🔶 Moderado" if x is not None else "➖ N/A"))
+        },
+        "margen_neto": {
+            "rango": "> 10%",
+            "eval": lambda x: "✅ Positivo" if x is not None and x >= 0.10 else ("⚠️ Bajo" if x is not None and x >= 0 else ("❌ Negativo" if x is not None else "➖ N/A"))
+        },
+        "roe": {
+            "rango": "> 15%",
+            "eval": lambda x: "✅ Bueno" if x is not None and x >= 0.15 else ("🔶 Regular" if x is not None and x >= 0.05 else ("❌ Bajo" if x is not None else "➖ N/A"))
+        },
+    }
+    
+    for ratio, config in reglas.items():
+        if ratio in df_out.columns:
+            df_out[f"{ratio}_rango"] = config["rango"]
+            df_out[f"{ratio}_estado"] = df_out[ratio].apply(config["eval"])
+            
+    return df_out
 
 def alertas(df: pd.DataFrame) -> list[str]:
     """Reglas de negocio simples y explicables."""

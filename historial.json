@@ -1,0 +1,48 @@
+[
+  {
+    "fecha": "2026-11-14 18:02",
+    "empresa": "Empresa Ejemplo, C.A.",
+    "moneda": "Bs",
+    "periodos": [
+      "2023",
+      "2024"
+    ],
+    "alertas_count": 3,
+    "cifras": [
+      {
+        "periodo": "2023",
+        "moneda": null,
+        "activo_corriente": 520000.0,
+        "activo_total": 1500000.0,
+        "inventarios": 200000.0,
+        "efectivo": 120000.0,
+        "pasivo_corriente": 380000.0,
+        "pasivo_total": 900000.0,
+        "patrimonio": 600000.0,
+        "ventas": 2000000.0,
+        "costo_ventas": 1300000.0,
+        "utilidad_operativa": 250000.0,
+        "depreciacion_amortizacion": 60000.0,
+        "gastos_financieros": 70000.0,
+        "utilidad_neta": 120000.0
+      },
+      {
+        "periodo": "2024",
+        "moneda": null,
+        "activo_corriente": 560000.0,
+        "activo_total": 1650000.0,
+        "inventarios": 260000.0,
+        "efectivo": 90000.0,
+        "pasivo_corriente": 600000.0,
+        "pasivo_total": 1200000.0,
+        "patrimonio": 450000.0,
+        "ventas": 2100000.0,
+        "costo_ventas": 1450000.0,
+        "utilidad_operativa": 180000.0,
+        "depreciacion_amortizacion": 65000.0,
+        "gastos_financieros": 130000.0,
+        "utilidad_neta": 30000.0
+      }
+    ]
+  }
+]
